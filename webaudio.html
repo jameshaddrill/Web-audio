@@ -1,0 +1,161 @@
+<h1>WebAudio demo</h1>
+
+<h2>Creating and manipulating a tone</h2>
+<label for="oscillator">Oscillator type</label>
+<select id="oscillator">
+	<option value="sine">sine</option>
+	<option value="square">square</option>
+	<option value="sawtooth">sawtooth</option>
+	<option value="triangle">triangle</option>
+</select>
+
+<label for="volume">Volume</label>
+<select id="volume">
+	<option value="1.0">1.0</option>
+	<option value="0.9">0.9</option>
+	<option value="0.8">0.8</option>
+	<option value="0.7">0.7</option>
+	<option value="0.6">0.6</option>
+	<option value="0.5">0.5</option>
+	<option value="0.4">0.4</option>
+	<option value="0.3">0.3</option>
+	<option value="0.2">0.2</option>
+	<option value="0.1">0.1</option>
+	<option value="0.0">0.0</option>
+</select>
+
+<label for="frequency">Frequency</label>
+<select id="frequency">
+	<option value="100">100</option>
+	<option value="200">200</option>
+	<option value="300">300</option>
+	<option value="400">400</option>
+	<option value="500">500</option>
+	<option value="600">600</option>
+	<option value="700">700</option>
+	<option value="800">800</option>
+	<option value="900">900</option>
+	<option value="1000">1000</option>
+	<option value="2000">2000</option>
+	<option value="3000">3000</option>
+</select>
+
+<button id="start">Start</button>
+<button id="stop">Stop</button>
+
+
+<hr/>
+
+<h2>Loading and manipulating a sound file</h2>
+<label for="filter">Filter</label>
+<select id="filter">
+	<option value="lowpass">lowpass</option>
+	<option value="highpass">highpass</option>
+	<option value="bandpass">bandpass</option>
+	<option value="lowshelf">lowshelf</option>
+	<option value="highshelf">highshelf</option>
+	<option value="peaking">peaking</option>
+	<option value="notch">notch</option>
+	<option value="allpass">allpass</option>
+</select>
+
+<label for="quality">Quality</label>
+<select id="quality">
+	<option value="1.0">1.0</option>
+	<option value="0.9">0.9</option>
+	<option value="0.8">0.8</option>
+	<option value="0.7">0.7</option>
+	<option value="0.6">0.6</option>
+	<option value="0.5">0.5</option>
+	<option value="0.4">0.4</option>
+	<option value="0.3">0.3</option>
+	<option value="0.2">0.2</option>
+	<option value="0.1">0.1</option>
+	<option value="0.0">0.0</option>
+</select>
+
+<button id="load">Load</button>
+
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<script>
+
+	$(document).ready(init);
+
+	/*
+	http://blog.teamtreehouse.com/building-a-synthesizer-with-the-web-audio-api
+	https://sigusrone.com/articles/building-a-synth-with-the-web-audio-api-part-one
+	https://hacks.mozilla.org/2013/08/writing-web-audio-api-code-that-works-in-every-browser/
+	https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Using_Web_Audio_API
+	http://www.html5rocks.com/en/tutorials/webaudio/intro/
+	*/
+
+	function init() {
+		var myAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+		var oscillator = myAudioContext.createOscillator();
+		var gainNode = myAudioContext.createGain();
+		var filter = myAudioContext.createBiquadFilter();
+
+		gainNode.connect(myAudioContext.destination);
+		oscillator.connect(gainNode);
+		oscillator.frequency.value = 261.626;
+
+		filter.connect(myAudioContext.destination);
+		filter.type = 'notch';
+		filter.frequency.value = 400;
+
+		$('#oscillator').on('change', function() {
+			oscillator.type = $(this).val();
+		});
+
+		$('#volume').on('change', function() {
+			gainNode.gain.value = $(this).val();
+		});
+
+		$('#frequency').on('change', function() {
+			oscillator.frequency.value = $(this).val();
+		});
+
+		$('#filter').on('change', function() {
+			filter.type = $(this).val();
+		});
+
+		$('#quality').on('change', function() {
+			filter.Q.value = $(this).val() * 30;
+		});
+
+		$('#start').on('click', function() {
+			oscillator.start();
+		});
+
+		$('#stop').on('click', function() {
+			oscillator.stop();
+		});
+
+		$('#load').on('click', function() {
+			loadSound('https://upload.wikimedia.org/wikipedia/commons/8/82/Wolfgang_Amadeus_Mozart_-_Serenade_K.375_-_1._Allegro_maestoso.ogg');
+		});
+
+		function loadSound(url) {
+			var request = new XMLHttpRequest();
+			request.open('GET', url, true);
+			request.responseType = 'arraybuffer';
+
+			// Decode asynchronously
+			request.onload = function() {
+				myAudioContext.decodeAudioData(request.response, function(buffer) {
+					var source = myAudioContext.createBufferSource();
+					source.buffer = buffer;
+					source.connect(filter);
+					source.start(0);
+				}, function() {
+					console.log('An error occured');
+				});
+			};
+
+			request.send();
+		}
+	}
+
+
+</script>
