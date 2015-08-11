@@ -1,0 +1,21 @@
+.inputRow {
+	clear: both;
+}
+
+.inputTrigger {
+	display: block;
+	float: left;
+	width: 30px;
+	height: 30px;
+	background-color: red;
+	text-align: center;
+	margin: 15px 15px 0 0;
+}
+
+.inputTrigger.active {
+	background-color: green;
+}
+
+input {
+	display: none;
+}
